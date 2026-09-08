@@ -742,8 +742,10 @@ def _deliver_to_bot_chat(job: dict, content: str, profile: str) -> Optional[str]
             "chat", "--in", "~", "-c", "Bot Chat", "--create-if-missing",
             "-Q", "--query-file", query_file,
         ]
+        # The query comes from a file; a revoked gateway stdin must not reach
+        # the CLI interpreter (it can fail before Python runs any CLI code).
         result = subprocess.run(
-            argv, capture_output=True, text=True, timeout=_get_bot_chat_delivery_timeout(), env=env,
+            argv, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=_get_bot_chat_delivery_timeout(), env=env,
             creationflags=windows_hide_flags())
         if result.returncode != 0:
             tail = (result.stderr or result.stdout or "").strip()[-500:]
